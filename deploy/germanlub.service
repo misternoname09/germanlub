@@ -1,0 +1,51 @@
+# =============================================================
+# Systemd Service — GermanLub Django Backend (Gunicorn)
+# VPS OVH VPS-1 (2 vCores, 4 Go RAM)
+#
+# Installation :
+#   sudo cp germanlub.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable germanlub
+#   sudo systemctl start germanlub
+#
+# Commandes utiles :
+#   sudo systemctl status germanlub     # Voir le statut
+#   sudo systemctl restart germanlub    # Redémarrer
+#   sudo journalctl -u germanlub -f     # Voir les logs en temps réel
+# =============================================================
+
+[Unit]
+Description=GermanLub Shop - Django Backend (Gunicorn)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/germanlub/backend
+
+# Gunicorn avec 2 workers (optimal pour VPS-1 : 2 vCores)
+# Formule : workers = (2 × CPU) + 1, mais limité par la RAM sur VPS-1
+ExecStart=/var/www/germanlub/backend/venv/bin/gunicorn \
+    --workers 2 \
+    --bind 127.0.0.1:8000 \
+    --timeout 120 \
+    --max-requests 1000 \
+    --max-requests-jitter 50 \
+    --access-logfile /var/log/germanlub/access.log \
+    --error-logfile /var/log/germanlub/error.log \
+    core.wsgi:application
+
+# Charger les variables d'environnement depuis .env
+EnvironmentFile=/var/www/germanlub/backend/.env
+
+# Redémarrage automatique en cas de crash
+Restart=always
+RestartSec=5
+
+# Limites de sécurité
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

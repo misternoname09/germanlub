@@ -1,0 +1,79 @@
+{
+  "NAV": {
+    "HOME": "Accueil",
+    "CATALOG": "OnlineShop",
+    "CART": "Panier",
+    "LOGIN": "Connexion"
+  },
+  "CATALOG": {
+    "TITLE": "OnlineShop",
+    "RESULTS_FOR": "Résultats pour",
+    "LOADING": "Chargement des produits...",
+    "NO_PRODUCTS": "Aucun produit ne correspond à vos critères.",
+    "ADD_TO_CART": "Ajouter au panier",
+    "FILTERS": "Filtres",
+    "CATEGORIES": "Catégories",
+    "ALL_CATEGORIES": "Toutes les catégories",
+    "SORT_BY": "Trier par",
+    "SORT_RECENT": "Plus récents",
+    "SORT_PRICE_ASC": "Prix croissant",
+    "SORT_PRICE_DESC": "Prix décroissant",
+    "NO_IMAGE": "Sans image",
+    "OUT_OF_STOCK": "Rupture"
+  },
+  "CART": {
+    "TITLE": "Votre Panier",
+    "EMPTY": "Votre panier est vide.",
+    "CONTINUE_SHOPPING": "Continuer vos achats",
+    "PRODUCT": "Produit",
+    "QUANTITY": "Quantité",
+    "PRICE": "Prix",
+    "TOTAL": "Total",
+    "CHECKOUT": "Passer la commande",
+    "RECOMMENDATIONS_TITLE": "Vous aimerez aussi...",
+    "RECOMMENDATIONS_ADD": "Ajouter"
+  },
+  "CHECKOUT": {
+    "TITLE": "Finaliser la Commande",
+    "INFO": "Informations de livraison",
+    "NAME": "Nom complet",
+    "EMAIL": "Adresse e-mail",
+    "PHONE": "Téléphone",
+    "ADDRESS": "Adresse de livraison",
+    "COUPON": "Avez-vous un code promo ?",
+    "APPLY": "Appliquer",
+    "SUBMIT": "Valider la commande",
+    "ORDER_SUMMARY": "Résumé de la commande",
+    "SUBTOTAL": "Sous-total",
+    "DISCOUNT": "Réduction",
+    "SUCCESS": "Commande validée avec succès ! Un e-mail avec votre facture vous a été envoyé."
+  },
+  "HOME": {
+    "HERO": {
+      "TITLE1": "GERMANLUB — L’ingénierie allemande, la proximité africaine",
+      "TITLE2": "Propulsée par LES (Lubricants Engineering Solutions)",
+      "SUBTITLE": "Découvrez notre gamme complète d'huiles moteur pure synthèse. Protégez votre moteur, réduisez les frottements et libérez toute sa puissance avec GL-XTREME.",
+      "BTN_DISCOVER": "Découvrir la Gamme",
+      "BTN_MORE": "En savoir plus"
+    },
+    "FEATURES": {
+      "F1_TITLE": "Technologie Anti-Usure",
+      "F1_DESC": "Formule avancée qui forme un film protecteur ultra-résistant sur les pièces en mouvement.",
+      "F2_TITLE": "Performance Maximale",
+      "F2_DESC": "Optimise la puissance de votre moteur tout en réduisant la consommation de carburant.",
+      "F3_TITLE": "Adapté aux Flottes",
+      "F3_DESC": "Conditionnements de 5L à 200L pour les professionnels exigeant le meilleur rendement."
+    },
+    "PRODUCTS": {
+      "TITLE": "Nos Produits Phares",
+      "SUBTITLE": "Découvrez nos meilleures ventes de la gamme GL-XTREME.",
+      "OUT_OF_STOCK": "Rupture",
+      "ADD_TO_CART": "Ajouter au panier",
+      "VIEW_ALL": "Voir tout le catalogue"
+    },
+    "BLOG": {
+      "TITLE": "Conseils & Actualités",
+      "SUBTITLE": "Lisez nos derniers articles pour entretenir votre moteur."
+    }
+  }
+}

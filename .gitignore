@@ -1,0 +1,41 @@
+# ===================================
+# .gitignore racine — GermanLub Shop
+# ===================================
+
+# Variables d'environnement (CRITIQUE)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+
+# Environnements virtuels
+.venv/
+venv/
+env/
+
+# Base de données locale
+*.sqlite3
+db.sqlite3
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# Angular build
+frontend/dist/
+frontend/.angular/cache

@@ -1,0 +1,79 @@
+{
+  "NAV": {
+    "HOME": "Home",
+    "CATALOG": "OnlineShop",
+    "CART": "Cart",
+    "LOGIN": "Login"
+  },
+  "CATALOG": {
+    "TITLE": "OnlineShop",
+    "RESULTS_FOR": "Results for",
+    "LOADING": "Loading products...",
+    "NO_PRODUCTS": "No products match your criteria.",
+    "ADD_TO_CART": "Add to cart",
+    "FILTERS": "Filters",
+    "CATEGORIES": "Categories",
+    "ALL_CATEGORIES": "All categories",
+    "SORT_BY": "Sort by",
+    "SORT_RECENT": "Most recent",
+    "SORT_PRICE_ASC": "Price: Low to High",
+    "SORT_PRICE_DESC": "Price: High to Low",
+    "NO_IMAGE": "No image",
+    "OUT_OF_STOCK": "Out of Stock"
+  },
+  "CART": {
+    "TITLE": "Your Cart",
+    "EMPTY": "Your cart is empty.",
+    "CONTINUE_SHOPPING": "Continue shopping",
+    "PRODUCT": "Product",
+    "QUANTITY": "Quantity",
+    "PRICE": "Price",
+    "TOTAL": "Total",
+    "CHECKOUT": "Proceed to checkout",
+    "RECOMMENDATIONS_TITLE": "You might also like...",
+    "RECOMMENDATIONS_ADD": "Add"
+  },
+  "CHECKOUT": {
+    "TITLE": "Checkout",
+    "INFO": "Delivery Information",
+    "NAME": "Full Name",
+    "EMAIL": "Email Address",
+    "PHONE": "Phone Number",
+    "ADDRESS": "Delivery Address",
+    "COUPON": "Do you have a promo code?",
+    "APPLY": "Apply",
+    "SUBMIT": "Place Order",
+    "ORDER_SUMMARY": "Order Summary",
+    "SUBTOTAL": "Subtotal",
+    "DISCOUNT": "Discount",
+    "SUCCESS": "Order successfully placed! An email with your invoice has been sent."
+  },
+  "HOME": {
+    "HERO": {
+      "TITLE1": "GERMANLUB — German Engineering, African Proximity",
+      "TITLE2": "Powered by LES (Lubricants Engineering Solutions)",
+      "SUBTITLE": "Discover our full range of fully synthetic engine oils. Protect your engine, reduce friction, and unleash its full power with GL-XTREME.",
+      "BTN_DISCOVER": "Discover the Range",
+      "BTN_MORE": "Learn more"
+    },
+    "FEATURES": {
+      "F1_TITLE": "Anti-Wear Technology",
+      "F1_DESC": "Advanced formula that forms an ultra-resistant protective film on moving parts.",
+      "F2_TITLE": "Maximum Performance",
+      "F2_DESC": "Optimizes your engine's power while reducing fuel consumption.",
+      "F3_TITLE": "Suitable for Fleets",
+      "F3_DESC": "Packaging from 5L to 200L for professionals demanding the best efficiency."
+    },
+    "PRODUCTS": {
+      "TITLE": "Our Featured Products",
+      "SUBTITLE": "Discover our best-selling GL-XTREME products.",
+      "OUT_OF_STOCK": "Out of Stock",
+      "ADD_TO_CART": "Add to cart",
+      "VIEW_ALL": "View full catalog"
+    },
+    "BLOG": {
+      "TITLE": "Tips & News",
+      "SUBTITLE": "Read our latest articles on engine maintenance."
+    }
+  }
+}

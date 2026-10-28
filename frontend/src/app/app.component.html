@@ -1,0 +1,112 @@
+<div class="min-h-screen flex flex-col">
+  <!-- Navigation -->
+  <header *ngIf="!isManagerOrLoginRoute" class="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-50 transition-colors duration-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center">
+          <a routerLink="/" class="flex-shrink-0 flex items-center cursor-pointer">
+            <img src="assets/logo.jpg" alt="Germanlub" class="h-10 w-auto rounded-md">
+          </a>
+        </div>
+        <div class="hidden md:flex items-center space-x-8 flex-1 ml-8">
+          <a routerLink="/catalog" class="text-gray-600 dark:text-gray-300 hover:text-brand dark:hover:text-brand font-medium transition-colors">{{ 'NAV.CATALOG' | translate }}</a>
+          <a routerLink="/track-order" class="text-gray-600 dark:text-gray-300 hover:text-brand dark:hover:text-brand font-medium transition-colors">Suivi Commande</a>
+          <a href="https://les.sn/" target="_blank" rel="noopener noreferrer" class="text-gray-600 dark:text-gray-300 hover:text-brand dark:hover:text-brand font-medium transition-colors">Lubricants Engineering Solutions</a>
+          <a routerLink="/contact" class="text-gray-600 dark:text-gray-300 hover:text-brand dark:hover:text-brand font-medium transition-colors">Contact</a>
+          
+          <div class="flex-1 max-w-lg relative">
+            <input type="text" placeholder="Rechercher un produit..." (keyup.enter)="onSearch($event)"
+              class="w-full pl-4 pr-10 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-sm transition-colors duration-200">
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <!-- Language Switcher -->
+          <div class="flex items-center space-x-2 mr-2">
+            <button (click)="switchLanguage('fr')" [class.font-bold]="currentLang === 'fr'" class="text-sm text-gray-600 dark:text-gray-300 hover:text-brand transition-colors">FR</button>
+            <span class="text-gray-400">|</span>
+            <button (click)="switchLanguage('en')" [class.font-bold]="currentLang === 'en'" class="text-sm text-gray-600 dark:text-gray-300 hover:text-brand transition-colors">EN</button>
+          </div>
+          
+          <button (click)="toggleDarkMode()" class="text-gray-600 dark:text-gray-300 hover:text-brand focus:outline-none p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <!-- Sun icon for dark mode -->
+            <svg *ngIf="isDarkMode" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <!-- Moon icon for light mode -->
+            <svg *ngIf="!isDarkMode" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </button>
+          
+          <a routerLink="/cart" class="text-gray-600 dark:text-gray-300 hover:text-brand transition-colors relative">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span *ngIf="cartCount > 0" class="absolute -top-2 -right-2 bg-brand text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+              {{ cartCount }}
+            </span>
+          </a>
+          <!-- Mobile menu button -->
+          <button (click)="toggleMobileMenu()" class="md:hidden ml-2 text-gray-600 dark:text-gray-300 hover:text-brand focus:outline-none p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" *ngIf="!isMobileMenuOpen" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" *ngIf="isMobileMenuOpen" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Mobile Menu -->
+    <div *ngIf="isMobileMenuOpen" class="md:hidden bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 shadow-md">
+      <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        <a routerLink="/catalog" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-brand hover:bg-gray-50 dark:hover:bg-gray-700">{{ 'NAV.CATALOG' | translate }}</a>
+        <a routerLink="/track-order" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-brand hover:bg-gray-50 dark:hover:bg-gray-700">Suivi Commande</a>
+        <a href="https://les.sn/" target="_blank" rel="noopener noreferrer" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-brand hover:bg-gray-50 dark:hover:bg-gray-700">Lubricants Engineering Solutions</a>
+        <a routerLink="/contact" (click)="closeMobileMenu()" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-brand hover:bg-gray-50 dark:hover:bg-gray-700">Contact</a>
+        <div class="px-3 py-2">
+          <input type="text" placeholder="Rechercher un produit..." (keyup.enter)="onSearch($event); closeMobileMenu()"
+            class="w-full pl-4 pr-10 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-full focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-sm">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-grow">
+    <!-- Router outlet for pages -->
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Footer -->
+  <footer *ngIf="!isManagerOrLoginRoute" class="bg-gray-800 text-white mt-auto">
+    <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div>
+        <div class="max-w-2xl">
+          <span class="text-2xl font-bold tracking-tight">Germanlub</span>
+          <p class="mt-2 text-gray-400 text-sm">
+            La meilleure huile pour des performances optimales et une durée de vie prolongée de votre moteur. Qualité certifiée.
+          </p>
+        </div>
+      </div>
+      <div class="mt-8 border-t border-gray-700 pt-8 flex justify-between items-center">
+        <p class="text-base text-gray-400">
+          &copy; 2026 Germanlub. Tous droits réservés.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <ng-container *ngIf="!isManagerOrLoginRoute">
+    <!-- Chatbot -->
+    <app-chatbot></app-chatbot>
+
+    <!-- WhatsApp Floating Button -->
+    <app-whatsapp-button phoneNumber="+221787171818"></app-whatsapp-button>
+  </ng-container>
+</div>
