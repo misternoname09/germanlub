@@ -143,7 +143,24 @@ def generate_invoice_pdf(order):
     c.drawRightString(width - 150, tot_y, "Total TTC :")
     c.drawRightString(width - 40, tot_y, f"{int(order.total_amount):,} F CFA".replace(',', ' '))
     
-    # 4. FOOTER
+    # 4. CACHET / TAMPON
+    cachet_path = os.path.join(settings.MEDIA_ROOT, 'cachet.jpg')
+    # Fallback: check also in frontend assets
+    if not os.path.exists(cachet_path):
+        cachet_path = os.path.join(settings.BASE_DIR.parent, 'frontend', 'src', 'assets', 'cachet.jpg')
+    if os.path.exists(cachet_path):
+        try:
+            cachet_x = width - 175
+            cachet_y = 65
+            c.saveState()
+            c.setFillAlpha(0.75)  # slight transparency so it doesn't overpower text
+            c.drawImage(cachet_path, cachet_x, cachet_y, width=130, height=110,
+                        preserveAspectRatio=True, anchor='sw', mask='auto')
+            c.restoreState()
+        except Exception:
+            pass
+
+    # 5. FOOTER
     c.setFillColor(colors.gray)
     c.setFont("Helvetica-Bold", 8)
     c.drawCentredString(width/2, 50, "LUBRICANTS ENGINEERING SOLUTIONS")
@@ -307,7 +324,23 @@ def generate_delivery_slip_pdf(order):
     c.setFillColor(colors.gray)
     c.drawString(width - 250, sig_y - 75, "Date : ____/____/________")
     
-    # 6. FOOTER
+    # 6. CACHET / TAMPON
+    cachet_path = os.path.join(settings.MEDIA_ROOT, 'cachet.jpg')
+    if not os.path.exists(cachet_path):
+        cachet_path = os.path.join(settings.BASE_DIR.parent, 'frontend', 'src', 'assets', 'cachet.jpg')
+    if os.path.exists(cachet_path):
+        try:
+            cachet_x = width - 175
+            cachet_y = 65
+            c.saveState()
+            c.setFillAlpha(0.75)
+            c.drawImage(cachet_path, cachet_x, cachet_y, width=130, height=110,
+                        preserveAspectRatio=True, anchor='sw', mask='auto')
+            c.restoreState()
+        except Exception:
+            pass
+
+    # 7. FOOTER
     c.setFillColor(colors.gray)
     c.setFont("Helvetica-Bold", 8)
     c.drawCentredString(width/2, 50, "LUBRICANTS ENGINEERING SOLUTIONS")

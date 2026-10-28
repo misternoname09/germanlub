@@ -164,8 +164,8 @@ import { environment } from '../../../environments/environment';
             </ul>
           </div>
           <div class="mt-12 lg:mt-0 relative rounded-2xl overflow-hidden shadow-2xl group">
-            <video class="w-full object-cover" autoplay loop muted playsinline controls>
-              <source src="/assets/video_germanlub.mp4" type="video/mp4">
+            <video class="w-full object-cover" autoplay loop muted [muted]="true" playsinline controls>
+              <source src="assets/video_germanlub.mp4" type="video/mp4">
             </video>
             <div class="absolute inset-0 bg-gradient-to-tr from-brand/40 to-transparent mix-blend-multiply pointer-events-none"></div>
           </div>
