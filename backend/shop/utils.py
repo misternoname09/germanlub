@@ -140,7 +140,7 @@ def generate_invoice_pdf(order):
     
     c.setFillColor(TEXT_COLOR)
     c.setFont("Helvetica-Bold", 12)
-    c.drawRightString(width - 150, tot_y, "Total TTC :")
+    c.drawRightString(width - 150, tot_y, "Total :")
     c.drawRightString(width - 40, tot_y, f"{int(order.total_amount):,} F CFA".replace(',', ' '))
     
     # 4. CACHET / TAMPON
@@ -157,8 +157,8 @@ def generate_invoice_pdf(order):
             c.drawImage(cachet_path, cachet_x, cachet_y, width=130, height=110,
                         preserveAspectRatio=True, anchor='sw', mask='auto')
             c.restoreState()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Erreur dessin cachet facture: {e}")
 
     # 5. FOOTER
     c.setFillColor(colors.gray)
@@ -337,8 +337,8 @@ def generate_delivery_slip_pdf(order):
             c.drawImage(cachet_path, cachet_x, cachet_y, width=130, height=110,
                         preserveAspectRatio=True, anchor='sw', mask='auto')
             c.restoreState()
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"Erreur dessin cachet bordereau: {e}")
 
     # 7. FOOTER
     c.setFillColor(colors.gray)
