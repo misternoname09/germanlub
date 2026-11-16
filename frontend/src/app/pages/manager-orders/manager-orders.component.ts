@@ -190,7 +190,9 @@ export class ManagerOrdersComponent implements OnInit {
   loadOrders() {
     this.orderService.getOrders().subscribe({
       next: (data) => {
-        this.orders = data;
+        this.orders = [...data].sort((a, b) =>
+          (new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()) || ((b.id || 0) - (a.id || 0))
+        );
         this.loading = false;
       },
       error: (err) => {

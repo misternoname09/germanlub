@@ -161,7 +161,7 @@ class ForecastView(APIView):
         return Response({'forecast': forecast})
 
 class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all()
+    queryset = Order.objects.all().order_by('-created_at', '-id')
     serializer_class = OrderSerializer
     def get_permissions(self):
         if self.action in ['create', 'download_invoice']:
