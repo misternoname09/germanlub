@@ -16,6 +16,7 @@ import { ManagerProductsComponent } from './pages/manager-products/manager-produ
 import { ManagerCategoriesComponent } from './pages/manager-categories/manager-categories.component';
 import { ManagerCouponsComponent } from './pages/manager-coupons/manager-coupons.component';
 import { ManagerReviewsComponent } from './pages/manager-reviews/manager-reviews.component';
+import { ManagerVehiclesComponent } from './pages/manager-vehicles/manager-vehicles.component';
 
 import { TrackOrderComponent } from './pages/track-order/track-order.component';
 
@@ -40,6 +41,7 @@ export const routes: Routes = [
       { path: 'orders', component: ManagerOrdersComponent },
       { path: 'products', component: ManagerProductsComponent },
       { path: 'categories', component: ManagerCategoriesComponent },
+      { path: 'vehicles', component: ManagerVehiclesComponent },
       { path: 'coupons', component: ManagerCouponsComponent },
       { path: 'reviews', component: ManagerReviewsComponent }
     ]

@@ -40,6 +40,7 @@ import { OrderService } from '../../services/order.service';
               </a>
               <a routerLink="/manager/products" routerLinkActive="bg-gray-100 text-gray-900" (click)="toggleMobileMenu()" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium rounded-md">Produits & Stocks</a>
               <a routerLink="/manager/categories" routerLinkActive="bg-gray-100 text-gray-900" (click)="toggleMobileMenu()" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium rounded-md">Catégories</a>
+              <a routerLink="/manager/vehicles" routerLinkActive="bg-gray-100 text-gray-900" (click)="toggleMobileMenu()" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium rounded-md">Véhicules</a>
               <a routerLink="/manager/coupons" routerLinkActive="bg-gray-100 text-gray-900" (click)="toggleMobileMenu()" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium rounded-md">Codes Promo</a>
               <a routerLink="/manager/reviews" routerLinkActive="bg-gray-100 text-gray-900" (click)="toggleMobileMenu()" class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-base font-medium rounded-md">Avis Clients</a>
             </nav>
@@ -102,6 +103,14 @@ import { OrderService } from '../../services/order.service';
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                   </svg>
                   Catégories
+                </a>
+
+                <a routerLink="/manager/vehicles" routerLinkActive="bg-gray-100 text-gray-900"
+                  class="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                  <svg class="text-gray-400 group-hover:text-gray-500 mr-3 flex-shrink-0 h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h8m-8 4h8m-4 4v3m-6-3h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                  </svg>
+                  Véhicules
                 </a>
 
                 <a routerLink="/manager/coupons" routerLinkActive="bg-gray-100 text-gray-900"

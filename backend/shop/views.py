@@ -1,4 +1,5 @@
 import logging
+from decimal import Decimal
 from rest_framework import viewsets, status, permissions, filters
 from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
@@ -95,7 +96,7 @@ class VehicleViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve', 'makes', 'models', 'engines']:
             return [permissions.AllowAny()]
-        return [permissions.IsAdminUser()]
+        return [permissions.IsAuthenticated()]
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -179,6 +180,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         data = request.data.copy()
         items = data.pop('items', [])
         coupon_code = data.pop('coupon_code', None)
+        if not request.user.is_authenticated:
+            data.pop('status', None)
         is_quote = data.get('is_quote', False)
         
         # 1. Verification of stock
@@ -218,8 +221,11 @@ class OrderViewSet(viewsets.ModelViewSet):
             product = products_dict.get(item['product_id'])
             if not product:
                 continue
-            quantity = item.get('quantity', 1)
-            price = product.price
+            quantity = int(item.get('quantity', 1))
+            if request.user.is_authenticated and item.get('price') is not None:
+                price = Decimal(str(item.get('price')))
+            else:
+                price = product.price
             subtotal += price * quantity
             order_items_to_create.append(
                 OrderItem(
@@ -326,6 +332,62 @@ class OrderViewSet(viewsets.ModelViewSet):
             })
         except (ValueError, Order.DoesNotExist):
             return Response({'error': 'Commande introuvable avec ce numéro.'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def export_csv(self, request):
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="commandes_germanlub.csv"'
+        response.write('\ufeff'.encode('utf8'))
+
+        writer = csv.writer(response, delimiter=';')
+        writer.writerow([
+            'Référence', 'Type', 'Date', 'Client', 'Téléphone', 'E-mail',
+            'Adresse', 'Statut', 'Articles', 'Sous-total (F CFA)',
+            'Code Promo', 'Réduction (F CFA)', 'Total (F CFA)'
+        ])
+
+        status_labels = {
+            'PENDING': 'En attente',
+            'VALIDATED': 'Validée',
+            'SHIPPING': 'En livraison',
+            'DELIVERED': 'Livrée',
+            'CANCELLED': 'Annulée',
+        }
+
+        orders = Order.objects.all().order_by('-created_at', '-id').prefetch_related('items__product', 'coupon')
+        total_revenue = Decimal('0')
+        valid_orders_count = 0
+
+        for order in orders:
+            items_summary = ', '.join(
+                f"{it.quantity}x {it.product.name if it.product else 'Produit supprimé'}"
+                for it in order.items.all()
+            )
+            doc_type = 'Devis' if order.is_quote else 'Commande'
+            status_label = status_labels.get(order.status, order.status)
+            writer.writerow([
+                order.invoice_number,
+                doc_type,
+                order.created_at.strftime('%d/%m/%Y %H:%M'),
+                order.customer_name,
+                order.customer_phone,
+                order.customer_email or '',
+                order.customer_address,
+                status_label,
+                items_summary,
+                int(order.subtotal),
+                order.coupon.code if order.coupon else '',
+                int(order.discount_amount),
+                int(order.total_amount),
+            ])
+            if not order.is_quote and order.status != 'CANCELLED':
+                total_revenue += order.total_amount
+                valid_orders_count += 1
+
+        writer.writerow([])
+        writer.writerow(['Commandes comptabilisées (hors devis/annulées)', valid_orders_count])
+        writer.writerow(["Chiffre d'Affaires Total (F CFA)", int(total_revenue)])
+        return response
 
     @action(detail=True, methods=['get'])
     def download_invoice(self, request, pk=None):

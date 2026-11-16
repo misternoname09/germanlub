@@ -29,6 +29,14 @@ export class OrderService {
     return this.http.get<Order[]>(this.apiUrl);
   }
 
+  createOrder(orderData: any): Observable<Order> {
+    return this.http.post<Order>(this.apiUrl, orderData);
+  }
+
+  exportOrdersCsv(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}export_csv/`, { responseType: 'blob' });
+  }
+
   updateOrderStatus(orderId: number, status: string): Observable<Order> {
     return this.http.patch<Order>(`${this.apiUrl}${orderId}/`, { status });
   }

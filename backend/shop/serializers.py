@@ -22,9 +22,14 @@ class CouponSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class VehicleSerializer(serializers.ModelSerializer):
+    recommended_product_names = serializers.SerializerMethodField(read_only=True)
+
     class Meta:
         model = Vehicle
         fields = '__all__'
+
+    def get_recommended_product_names(self, obj):
+        return [p.name for p in obj.recommended_products.all()]
 
 class ProductSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
