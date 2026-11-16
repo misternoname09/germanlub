@@ -26,14 +26,27 @@ import { environment } from '../../../environments/environment';
         </div>
       </div>
 
-      <div *ngIf="success" class="bg-green-50 border-l-4 border-green-400 p-4 mb-8">
+      <div *ngIf="success" class="bg-green-50 border-l-4 border-green-400 p-6 mb-8 rounded-r-lg shadow-sm">
         <div class="flex">
-          <div class="ml-3">
+          <div class="ml-3 w-full">
+            <h3 class="text-lg font-bold text-green-800">
+              {{ createdOrder?.is_quote ? 'Demande de devis enregistrée !' : 'Commande confirmée !' }}
+            </h3>
             <p class="mt-2 text-sm text-green-700">
               {{ 'CHECKOUT.SUCCESS' | translate }}
             </p>
-            <div class="mt-4">
-              <button (click)="goToCatalog()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+            <p *ngIf="createdOrder?.invoice_number" class="mt-2 text-sm font-semibold text-green-900">
+              Référence : <span class="font-mono bg-green-100 px-2 py-0.5 rounded">{{ createdOrder.invoice_number }}</span>
+            </p>
+            <div class="mt-5 flex flex-wrap gap-3">
+              <button *ngIf="createdOrder?.id" (click)="downloadOrderPdf()" type="button"
+                class="inline-flex items-center bg-brand hover:bg-orange-700 text-white font-bold py-2 px-4 rounded transition-colors shadow-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Télécharger {{ createdOrder.is_quote ? 'mon Devis' : 'ma Facture' }} (PDF)
+              </button>
+              <button (click)="goToCatalog()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors">
                 Continuer mes achats
               </button>
             </div>
@@ -139,6 +152,7 @@ export class CheckoutComponent implements OnInit {
   
   loading: boolean = false;
   success: boolean = false;
+  createdOrder: any = null;
 
   constructor(
     private cartService: CartService,
@@ -210,8 +224,9 @@ export class CheckoutComponent implements OnInit {
     }
 
     this.http.post(`${environment.apiUrl}/orders/`, orderData).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.loading = false;
+        this.createdOrder = response;
         this.success = true;
         this.cartService.clearCart();
       },
@@ -219,6 +234,28 @@ export class CheckoutComponent implements OnInit {
         console.error('Erreur de commande', err);
         this.loading = false;
         alert('Une erreur est survenue lors de la commande. Veuillez réessayer.');
+      }
+    });
+  }
+
+  downloadOrderPdf() {
+    if (!this.createdOrder?.id) return;
+    this.http.get(`${environment.apiUrl}/orders/${this.createdOrder.id}/download_invoice/`, { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const prefix = this.createdOrder.is_quote ? 'devis' : 'facture';
+        const ref = (this.createdOrder.invoice_number || this.createdOrder.id).toString().replace(/\//g, '_');
+        a.download = `${prefix}_${ref}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      },
+      error: (err) => {
+        console.error('Erreur téléchargement PDF', err);
+        alert('Impossible de télécharger le PDF pour le moment.');
       }
     });
   }

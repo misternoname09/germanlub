@@ -172,7 +172,7 @@ export const environment = {
 };
 EOF
 
-npm install
+npm install --legacy-peer-deps
 npx ng build --configuration=production
 
 log "Frontend Angular buildé ✓"

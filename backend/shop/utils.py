@@ -3,8 +3,77 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
+from reportlab.lib.utils import simpleSplit
 from django.conf import settings
 from datetime import datetime
+
+
+def _convert_below_1000(n: int, allow_plural: bool = True) -> str:
+    """Convert an integer in [0, 999] into French words."""
+    units = [
+        "", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf",
+        "dix", "onze", "douze", "treize", "quatorze", "quinze", "seize",
+        "dix-sept", "dix-huit", "dix-neuf",
+    ]
+    tens = ["", "", "vingt", "trente", "quarante", "cinquante", "soixante"]
+
+    if n == 0:
+        return ""
+    if n < 20:
+        return units[n]
+
+    if n < 100:
+        if n < 70:
+            ten, rem = divmod(n, 10)
+            if rem == 0:
+                return tens[ten]
+            if rem == 1:
+                return f"{tens[ten]} et un"
+            return f"{tens[ten]}-{units[rem]}"
+        if n < 80:
+            rem = n - 60
+            if rem == 11:
+                return "soixante et onze"
+            return f"soixante-{units[rem]}"
+        rem = n - 80
+        if rem == 0:
+            return "quatre-vingts" if allow_plural else "quatre-vingt"
+        return f"quatre-vingt-{units[rem]}"
+
+    hundreds, rem = divmod(n, 100)
+    prefix = "cent" if hundreds == 1 else f"{units[hundreds]} cent"
+    if rem == 0:
+        if hundreds > 1 and allow_plural:
+            return f"{prefix}s"
+        return prefix
+    return f"{prefix} {_convert_below_1000(rem, allow_plural=allow_plural)}"
+
+
+def nombre_en_lettres(n: int) -> str:
+    """Convert a non-negative integer (up to 999,999,999) into French words."""
+    if n < 0:
+        return f"moins {nombre_en_lettres(-n)}"
+    if n == 0:
+        return "zéro"
+
+    parts = []
+    millions, rem = divmod(n, 1_000_000)
+    if millions == 1:
+        parts.append("un million")
+    elif millions > 1:
+        parts.append(f"{_convert_below_1000(millions)} millions")
+
+    thousands, below_1000 = divmod(rem, 1000)
+    if thousands == 1:
+        parts.append("mille")
+    elif thousands > 1:
+        parts.append(f"{_convert_below_1000(thousands, allow_plural=False)} mille")
+
+    if below_1000 > 0:
+        parts.append(_convert_below_1000(below_1000))
+
+    return " ".join(parts)
+
 
 def generate_invoice_pdf(order):
     """
@@ -88,7 +157,7 @@ def generate_invoice_pdf(order):
     # 2. ITEMS TABLE
     data = [["Description", "Qté", "Prix Unitaire", "Total"]]
     for item in order.items.all():
-        product_name = item.product.name if item.product else "Produit supprimé"
+        product_name = (item.product.name if item.product else "Produit supprimé").replace("GERMNLUB", "GERMANLUB")
         data.append([
             product_name[:45], 
             str(item.quantity), 
@@ -142,6 +211,18 @@ def generate_invoice_pdf(order):
     c.setFont("Helvetica-Bold", 12)
     c.drawRightString(width - 150, tot_y, "Total :")
     c.drawRightString(width - 40, tot_y, f"{int(order.total_amount):,} F CFA".replace(',', ' '))
+    
+    # Mention du montant en toutes lettres
+    arrete_y = tot_y - 35
+    c.setFont("Helvetica-Oblique", 9)
+    c.setFillColor(colors.gray)
+    doc_type_str = "Arrêté le présent devis à la somme de :" if getattr(order, 'is_quote', False) else "Arrêtée la présente facture à la somme de :"
+    c.drawString(40, arrete_y, doc_type_str)
+    c.setFont("Helvetica-Bold", 9.5)
+    c.setFillColor(TEXT_COLOR)
+    montant_lettres = f"{nombre_en_lettres(int(order.total_amount)).capitalize()} Francs CFA"
+    for idx, line in enumerate(simpleSplit(montant_lettres, "Helvetica-Bold", 9.5, width - 80)):
+        c.drawString(40, arrete_y - 14 - (idx * 12), line)
     
     # 4. CACHET / TAMPON
     cachet_path = os.path.join(settings.MEDIA_ROOT, 'cachet.jpg')
@@ -254,7 +335,7 @@ def generate_delivery_slip_pdf(order):
     # 2. ITEMS TABLE (NO PRICES)
     data = [["N°", "Description", "Quantité"]]
     for idx, item in enumerate(order.items.all(), 1):
-        product_name = item.product.name if item.product else "Produit supprimé"
+        product_name = (item.product.name if item.product else "Produit supprimé").replace("GERMNLUB", "GERMANLUB")
         data.append([
             str(idx),
             product_name[:50], 

@@ -271,7 +271,8 @@ export class ProductDetailComponent implements OnInit {
   getWhatsAppProductUrl(): string {
     if (!this.product) return '';
     const phone = '221787171818';
-    const message = `Bonjour, je suis intéressé par le produit *${this.product.name}* affiché à ${this.product.price} F CFA sur votre site. Est-il disponible ?`;
+    const totalPrice = (this.product.price * this.selectedQuantity).toFixed(0);
+    const message = `Bonjour, je souhaite commander ${this.selectedQuantity}x *${this.product.name}* (Total : ${totalPrice} F CFA) sur votre site. Est-il disponible ?`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   }
 

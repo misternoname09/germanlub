@@ -26,6 +26,7 @@ cd ${PROJECT_DIR}/backend
 source venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate --no-input
+python manage.py shell -c "from shop.models import Product; [setattr(p, 'name', p.name.replace('GERMNLUB', 'GERMANLUB')) or p.save() for p in Product.objects.filter(name__icontains='GERMNLUB')]"
 python manage.py collectstatic --no-input
 systemctl restart germanlub
 log "Backend mis à jour ✓"
@@ -33,7 +34,7 @@ log "Backend mis à jour ✓"
 # Frontend
 log "Rebuild du frontend..."
 cd ${PROJECT_DIR}/frontend
-npm install
+npm install --legacy-peer-deps
 npx ng build --configuration=production
 log "Frontend mis à jour ✓"
 

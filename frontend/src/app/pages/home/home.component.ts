@@ -37,12 +37,10 @@ import { environment } from '../../../environments/environment';
         </div>
       </div>
 
-      <!-- VEHICLE SELECTOR SECTION (Temporarily Hidden) -->
-      <!--
+      <!-- VEHICLE SELECTOR SECTION -->
       <div class="px-4 sm:px-6 lg:px-8">
         <app-vehicle-selector></app-vehicle-selector>
       </div>
-      -->
 
       <!-- FEATURED PRODUCTS SECTION -->
       <div class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -164,7 +164,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     def get_permissions(self):
-        if self.action == 'create':
+        if self.action in ['create', 'download_invoice']:
             permission_classes = [permissions.AllowAny]
         else:
             permission_classes = [permissions.IsAuthenticated]
@@ -270,6 +270,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 manager_subject = f"🚨 Nouvelle Commande N° {order.id} !"
                 manager_body = f"Bonjour Gérant,\n\nUne nouvelle commande vient d'être passée sur le site :\n\nClient : {order.customer_name}\nTéléphone : {order.customer_phone}\nMontant : {order.total_amount} F CFA\n\nVeuillez vous connecter à l'espace Gérant pour la traiter."
 
+            pdf_path = generate_invoice_pdf(order)
+
             if order.customer_email:
                 customer_email = EmailMessage(
                     customer_subject,
@@ -277,6 +279,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                     'lesgermanlub@gmail.com',
                     [order.customer_email],
                 )
+                if os.path.exists(pdf_path):
+                    customer_email.attach_file(pdf_path)
                 customer_email.send(fail_silently=True)
 
             manager_email = EmailMessage(
@@ -285,6 +289,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 'lesgermanlub@gmail.com',
                 ['lesgermanlub@gmail.com'],
             )
+            if os.path.exists(pdf_path):
+                manager_email.attach_file(pdf_path)
             manager_email.send(fail_silently=True)
             print(f"Emails envoyés pour l'ordre/devis {order.id}")
         except Exception as e:
