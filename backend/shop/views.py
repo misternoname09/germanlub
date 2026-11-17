@@ -1,5 +1,5 @@
 import logging
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from rest_framework import viewsets, status, permissions, filters
 from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
@@ -17,6 +17,16 @@ from datetime import timedelta
 from .models import Category, Product, Order, OrderItem, Review, BlogPost, Coupon, Vehicle
 from .serializers import CategorySerializer, ProductSerializer, OrderSerializer, ReviewSerializer, BlogPostSerializer, CouponSerializer, VehicleSerializer
 from .utils import generate_invoice_pdf, generate_delivery_slip_pdf
+
+
+def _sanitize_csv_cell(value):
+    """Prevent CSV/Excel formula injection on user-supplied text cells."""
+    if value is None:
+        return ''
+    text = str(value)
+    if text and text[0] in ('=', '+', '-', '@', '\t', '\r'):
+        return f"'{text}"
+    return text
 
 class CouponViewSet(viewsets.ModelViewSet):
     queryset = Coupon.objects.all()
@@ -96,7 +106,7 @@ class VehicleViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['list', 'retrieve', 'makes', 'models', 'engines']:
             return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+        return [permissions.IsAdminUser()]
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -134,8 +144,8 @@ class ProductViewSet(viewsets.ModelViewSet):
             valeur = product.price * product.stock
             writer.writerow([
                 product.id,
-                product.name,
-                product.category.name if product.category else 'Aucune',
+                _sanitize_csv_cell(product.name),
+                _sanitize_csv_cell(product.category.name if product.category else 'Aucune'),
                 product.price,
                 product.stock,
                 valeur
@@ -144,7 +154,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         return response
 
 class ForecastView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAdminUser]
 
     def get(self, request):
         # Mock Prophet Stock Forecasting
@@ -165,10 +175,10 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all().order_by('-created_at', '-id')
     serializer_class = OrderSerializer
     def get_permissions(self):
-        if self.action in ['create', 'download_invoice']:
+        if self.action in ['create', 'download_invoice', 'track']:
             permission_classes = [permissions.AllowAny]
         else:
-            permission_classes = [permissions.IsAuthenticated]
+            permission_classes = [permissions.IsAdminUser]
         return [permission() for permission in permission_classes]
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAdminUser])
@@ -180,52 +190,83 @@ class OrderViewSet(viewsets.ModelViewSet):
         data = request.data.copy()
         items = data.pop('items', [])
         coupon_code = data.pop('coupon_code', None)
-        if not request.user.is_authenticated:
-            data.pop('status', None)
-        is_quote = data.get('is_quote', False)
-        
-        # 1. Verification of stock
-        if not is_quote:
-            for item in items:
+        is_quote = bool(data.get('is_quote', False))
+        is_staff = bool(request.user and request.user.is_staff)
+
+        if not isinstance(items, list) or len(items) == 0:
+            return Response(
+                {'error': 'Veuillez ajouter au moins un article à la commande.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        allowed_order_fields = {
+            'customer_name': str(data.get('customer_name', '') or '').strip(),
+            'customer_email': str(data.get('customer_email', '') or '').strip(),
+            'customer_phone': str(data.get('customer_phone', '') or '').strip(),
+            'customer_address': str(data.get('customer_address', '') or '').strip(),
+            'is_quote': is_quote,
+        }
+        if not allowed_order_fields['customer_name'] or not allowed_order_fields['customer_phone']:
+            return Response(
+                {'error': 'Le nom et le numéro de téléphone sont obligatoires.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if is_staff and data.get('status') in dict(Order.STATUS_CHOICES):
+            allowed_order_fields['status'] = data.get('status')
+
+        # 1. Validation des quantités, prix et stock
+        validated_items = []
+        for item in items:
+            if not isinstance(item, dict) or 'product_id' not in item:
+                return Response({'error': "Format d'article invalide."}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                qty = int(item.get('quantity', 1))
+            except (TypeError, ValueError):
+                return Response({'error': 'La quantité doit être un nombre entier.'}, status=status.HTTP_400_BAD_REQUEST)
+            if qty <= 0:
+                return Response({'error': 'La quantité doit être supérieure à 0.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                product = Product.objects.get(id=item['product_id'])
+            except (Product.DoesNotExist, TypeError, ValueError):
+                return Response({'error': 'Produit introuvable.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not is_quote and product.stock < qty:
+                return Response(
+                    {'error': f"Stock insuffisant pour le produit {product.name} (Stock actuel: {product.stock})."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if is_staff and item.get('price') is not None:
                 try:
-                    product = Product.objects.get(id=item['product_id'])
-                    qty = item.get('quantity', 1)
-                    if product.stock < qty:
-                        return Response(
-                            {'error': f"Stock insuffisant pour le produit {product.name} (Stock actuel: {product.stock})."},
-                            status=status.HTTP_400_BAD_REQUEST
-                        )
-                except Product.DoesNotExist:
-                    return Response({'error': "Produit introuvable."}, status=status.HTTP_400_BAD_REQUEST)
-        
+                    unit_price = Decimal(str(item.get('price')))
+                except (InvalidOperation, TypeError, ValueError):
+                    return Response({'error': 'Prix unitaire invalide.'}, status=status.HTTP_400_BAD_REQUEST)
+                if unit_price < 0:
+                    return Response({'error': 'Le prix unitaire ne peut pas être négatif.'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                unit_price = product.price
+
+            validated_items.append((product, qty, unit_price))
+
         coupon_obj = None
         if coupon_code:
             try:
-                # We check active, and if valid_until is valid. Assuming valid for now if it exists
-                coupon_obj = Coupon.objects.get(code__iexact=coupon_code, active=True)
+                candidate = Coupon.objects.get(code__iexact=coupon_code, active=True)
+                if not (candidate.valid_until and candidate.valid_until < timezone.now()):
+                    coupon_obj = candidate
             except Coupon.DoesNotExist:
                 pass
-        
-        order = Order.objects.create(**data)
+
+        order = Order.objects.create(**allowed_order_fields)
         if request.user.is_authenticated:
             order.user = request.user
-            
-        subtotal = 0
-        product_ids = [item['product_id'] for item in items]
-        products_dict = {p.id: p for p in Product.objects.filter(id__in=product_ids)}
-        
+
+        subtotal = Decimal('0')
         order_items_to_create = []
         products_to_update = []
-        
-        for item in items:
-            product = products_dict.get(item['product_id'])
-            if not product:
-                continue
-            quantity = int(item.get('quantity', 1))
-            if request.user.is_authenticated and item.get('price') is not None:
-                price = Decimal(str(item.get('price')))
-            else:
-                price = product.price
+
+        for product, quantity, price in validated_items:
             subtotal += price * quantity
             order_items_to_create.append(
                 OrderItem(
@@ -235,12 +276,12 @@ class OrderViewSet(viewsets.ModelViewSet):
                     price=price
                 )
             )
-            
+
             # Decrease stock
             if not is_quote:
                 product.stock -= quantity
                 products_to_update.append(product)
-                
+
         OrderItem.objects.bulk_create(order_items_to_create)
         if products_to_update:
             Product.objects.bulk_update(products_to_update, ['stock'])
@@ -333,7 +374,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         except (ValueError, Order.DoesNotExist):
             return Response({'error': 'Commande introuvable avec ce numéro.'}, status=status.HTTP_404_NOT_FOUND)
 
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAdminUser])
     def export_csv(self, request):
         response = HttpResponse(content_type='text/csv; charset=utf-8')
         response['Content-Disposition'] = 'attachment; filename="commandes_germanlub.csv"'
@@ -366,17 +407,17 @@ class OrderViewSet(viewsets.ModelViewSet):
             doc_type = 'Devis' if order.is_quote else 'Commande'
             status_label = status_labels.get(order.status, order.status)
             writer.writerow([
-                order.invoice_number,
+                _sanitize_csv_cell(order.invoice_number),
                 doc_type,
                 order.created_at.strftime('%d/%m/%Y %H:%M'),
-                order.customer_name,
-                order.customer_phone,
-                order.customer_email or '',
-                order.customer_address,
+                _sanitize_csv_cell(order.customer_name),
+                _sanitize_csv_cell(order.customer_phone),
+                _sanitize_csv_cell(order.customer_email or ''),
+                _sanitize_csv_cell(order.customer_address),
                 status_label,
-                items_summary,
+                _sanitize_csv_cell(items_summary),
                 int(order.subtotal),
-                order.coupon.code if order.coupon else '',
+                _sanitize_csv_cell(order.coupon.code if order.coupon else ''),
                 int(order.discount_amount),
                 int(order.total_amount),
             ])
@@ -392,6 +433,11 @@ class OrderViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def download_invoice(self, request, pk=None):
         order = self.get_object()
+        if not (request.user and request.user.is_staff):
+            ref = (request.query_params.get('ref') or '').strip()
+            phone = (request.query_params.get('phone') or '').strip()
+            if not ((ref and ref == order.invoice_number) or (phone and phone == order.customer_phone)):
+                return Response({'error': 'Accès non autorisé à cette facture.'}, status=status.HTTP_403_FORBIDDEN)
         filepath = generate_invoice_pdf(order)
         if os.path.exists(filepath):
             safe_invoice_number = order.invoice_number.replace('/', '_')

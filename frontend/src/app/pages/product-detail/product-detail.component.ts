@@ -50,7 +50,7 @@ import { environment } from '../../../environments/environment';
 
           <div class="mt-6">
             <h3 class="sr-only">Description</h3>
-            <div class="text-base text-gray-700 dark:text-gray-300 space-y-6" [innerHTML]="product.description"></div>
+            <div class="text-base text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ product.description }}</div>
           </div>
           
           <div class="mt-4" *ngIf="product.technical_sheet">

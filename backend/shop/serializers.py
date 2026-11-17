@@ -11,6 +11,11 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
 
+    def validate_rating(self, value):
+        if value < 1 or value > 5:
+            raise serializers.ValidationError("La note doit être comprise entre 1 et 5.")
+        return value
+
 class BlogPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPost
@@ -41,6 +46,14 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
+
+    def validate_technical_sheet(self, value):
+        if value:
+            if not value.name.lower().endswith('.pdf'):
+                raise serializers.ValidationError("La fiche technique doit être un fichier PDF (.pdf).")
+            if value.size > 10 * 1024 * 1024:
+                raise serializers.ValidationError("La fiche technique ne doit pas dépasser 10 Mo.")
+        return value
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)

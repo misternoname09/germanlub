@@ -240,7 +240,10 @@ export class CheckoutComponent implements OnInit {
 
   downloadOrderPdf() {
     if (!this.createdOrder?.id) return;
-    this.http.get(`${environment.apiUrl}/orders/${this.createdOrder.id}/download_invoice/`, { responseType: 'blob' }).subscribe({
+    this.http.get(`${environment.apiUrl}/orders/${this.createdOrder.id}/download_invoice/`, {
+      params: { ref: this.createdOrder.invoice_number || '' },
+      responseType: 'blob'
+    }).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
